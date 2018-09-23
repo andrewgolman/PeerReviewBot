@@ -28,7 +28,7 @@ class PeerReviewDB:
             db.execute('''
             CREATE TABLE task (
                 name        text PRIMARY KEY,
-                status      text,
+                status      int,
                 timestamp   int
             )''')
             db.execute('''
