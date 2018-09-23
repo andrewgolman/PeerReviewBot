@@ -36,7 +36,6 @@ def main():
     configure_logger(config.get('database', 'log_file', fallback=None))
 
     db = PeerReviewDB(config['database']['db_file'])
-    db.create_db()
 
 
 if __name__ == '__main__':

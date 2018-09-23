@@ -1,5 +1,5 @@
 import logging
-import os
+import os.path
 import sqlite3
 
 
@@ -10,6 +10,10 @@ class PeerReviewDB:
         self.db_file = db_file
         if not os.path.exists(db_file):
             self._create_db()
+        else:
+            PeerReviewDB.logger.info(
+                'Found database at {}'.format(os.path.abspath(self.db_file))
+            )
 
     def _create_db(self):
         PeerReviewDB.logger.info(
@@ -24,6 +28,7 @@ class PeerReviewDB:
             db.execute('''
             CREATE TABLE task (
                 name        text PRIMARY KEY,
+                status      text,
                 timestamp   int
             )''')
             db.execute('''
@@ -37,7 +42,8 @@ class PeerReviewDB:
             CREATE TABLE review (
                reviewer text    REFERENCES user(login),
                task_id  int     REFERENCES user_task(id),
-               status   int
+               status   int,
+               PRIMARY KEY(reviewer, task_id)
             )''')
 
     def _create_connection(self):
