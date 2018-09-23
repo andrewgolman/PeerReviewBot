@@ -1,4 +1,5 @@
 from github import Github, GithubException
+from time import sleep
 import config
 
 GH = Github(config.github_access_token)
@@ -19,6 +20,7 @@ def parseRepositoryFullName(repository_url):
 # returns issue number
 def create_issue(reviewee, reviewer, task_name, repository_url):
     name = parseRepositoryFullName(repository_url)
+    sleep(1)
 
     try:
         repo = GH.get_repo(name)
@@ -30,6 +32,8 @@ def create_issue(reviewee, reviewer, task_name, repository_url):
 # issue number is that returned by create_issue
 def issue_closed(repository_url, issue_number):
     name = parseRepositoryFullName(repository_url)
+    sleep(1)
+    
     if not name:
         return 1
 
