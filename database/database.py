@@ -56,3 +56,4 @@ class PeerReviewDB:
         db.set_trace_callback(PeerReviewDB.logger.debug)
         db.execute('PRAGMA foreign_keys = 1')
         return db
+
