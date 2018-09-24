@@ -33,7 +33,10 @@ def main():
 
     configure_logger(config.get('database', 'log_file', fallback=None))
 
-    db = PeerReviewDB(config['database']['db_file'])
+    db = PeerReviewDB(
+        config['database']['db_file'],
+        config.getboolean('database', 'override_db')
+    )
 
 
 if __name__ == '__main__':

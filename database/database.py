@@ -6,12 +6,18 @@ import sqlite3
 class PeerReviewDB:
     logger = logging.getLogger('database')
 
-    def __init__(self, db_file):
+    def __init__(self, db_file, override_db=False):
         self.db_file = db_file
         if not os.path.exists(db_file):
             PeerReviewDB.logger.info(
                 'Creating database at {}'.format(os.path.abspath(self.db_file))
             )
+            self._create_db()
+        elif override_db:
+            PeerReviewDB.logger.info(
+                'Overriding database at {}'.format(os.path.abspath(self.db_file))
+            )
+            os.remove(db_file)
             self._create_db()
         else:
             PeerReviewDB.logger.info(
