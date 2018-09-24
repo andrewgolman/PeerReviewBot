@@ -4,28 +4,26 @@ from database import PeerReviewDB
 
 import configparser
 import logging
-import logging.config
 import sys
 
 
 def configure_logger(log_file=None):
-    logger = PeerReviewDB.logger
-    logger.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    handlers = []
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    handlers.append(console_handler)
 
     if log_file is not None:
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        handlers.append(file_handler)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=handlers
+    )
 
 
 def main():

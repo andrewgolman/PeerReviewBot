@@ -9,17 +9,16 @@ class PeerReviewDB:
     def __init__(self, db_file):
         self.db_file = db_file
         if not os.path.exists(db_file):
+            PeerReviewDB.logger.info(
+                'Creating database at {}'.format(os.path.abspath(self.db_file))
+            )
             self._create_db()
         else:
             PeerReviewDB.logger.info(
-                'Found database at {}'.format(os.path.abspath(self.db_file))
+                'Using database found at {}'.format(os.path.abspath(self.db_file))
             )
 
     def _create_db(self):
-        PeerReviewDB.logger.info(
-            'Creating database at {}'.format(os.path.abspath(self.db_file))
-        )
-
         with self._create_connection() as db:
             db.execute('''
             CREATE TABLE user (
@@ -48,5 +47,6 @@ class PeerReviewDB:
 
     def _create_connection(self):
         db = sqlite3.connect(self.db_file)
+        db.set_trace_callback(PeerReviewDB.logger.debug)
         db.execute('PRAGMA foreign_keys = 1')
         return db
