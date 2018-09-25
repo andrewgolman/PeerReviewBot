@@ -153,10 +153,11 @@ def take_review(bot, update):
             update.message.reply_text(
                 your_reviewee_msg + "Created an issue to discuss the review at {}".format(review_url)
             )
+            db.assign_review(reviewee, reviewer, task, review_url, has_issue=True)
         except ApiException:
             review_url = repo_url
             update.message.reply_text("Find the code at {}".format(review_url))
-        db.add_review(reviewee, reviewer, task, review_url)
+            db.assign_review(reviewee, reviewer, task, review_url, has_issue=False)
 
 
 @check_access
@@ -172,10 +173,10 @@ def list_reviews(bot, update):
 
 # HANDLERS
 add_task_handler = ConversationHandler(
-        entry_points=[CommandHandler("add_task", ask_task)],
+        entry_points=[CommandHandler("add", ask_task)],
         states={
-            CHStates.ASKED_TASK: [MessageHandler(Filters.text, parse_task)],
-            CHStates.ASKED_URL: [MessageHandler(Filters.text, parse_url)]
+            CHStates.ASKED_TASK: [MessageHandler(Filters.text, parse_task, pass_user_data=True)],
+            CHStates.ASKED_URL: [MessageHandler(Filters.text, parse_url, pass_user_data=True)]
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )
