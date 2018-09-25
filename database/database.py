@@ -2,7 +2,7 @@ import logging
 import os.path
 import sqlite3
 
-from datatypes import *
+from datatypes import User, Task, UserTask, Review
 
 
 def _convert_many_decorator(to_type):
