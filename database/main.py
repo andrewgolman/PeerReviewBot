@@ -38,6 +38,12 @@ def main():
         config.getboolean('database', 'override_db')
     )
 
+    db.add_user('user0')
+    db.add_user('user1')
+    print(db.get_all_users())
+    print(db.get_user('user0'))
+    print(db.get_user('user2'))
+
 
 if __name__ == '__main__':
     main()
