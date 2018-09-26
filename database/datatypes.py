@@ -9,9 +9,12 @@ Task = namedtuple('Task', ['name'])
 
 UserTask = namedtuple(
     'UserTask',
-    ['id', 'user', 'task', 'url', 'status', 'timestamp']
+    ['user', 'task', 'url', 'status', 'timestamp']
 )
 
 
-Review = namedtuple('Review', ['reviewer', 'task_id', 'status'])
+Review = namedtuple(
+    'Review',
+    ['reviewer', 'reviewee', 'task', 'status']
+)
 

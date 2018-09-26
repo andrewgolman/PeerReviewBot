@@ -5,11 +5,11 @@ import sqlite3
 from datatypes import User, Task, UserTask, Review
 
 
-def _convert_many_decorator(to_type):
+def _convert_list_decorator(to_type):
     def decorator_impl(func):
         def wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
-            return map(lambda v: to_type(*v), result)
+            return list(map(lambda v: to_type(*v), result))
         return wrapper
     return decorator_impl
 
@@ -18,7 +18,8 @@ def _convert_decorator(to_type):
     def decorator_impl(func):
         def wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
-            return to_type(*result)
+            if result is not None:
+                return to_type(*result)
         return wrapper
     return decorator_impl
 
@@ -50,7 +51,7 @@ class PeerReviewDB:
         with self._create_connection() as db:
             return db.execute(
                 'SELECT * FROM user WHERE login = ?',
-                [login]
+                (login,)
             ).fetchone()
 
     @_convert_decorator(Task)
@@ -58,42 +59,46 @@ class PeerReviewDB:
         with self._create_connection() as db:
             return db.execute(
                 'SELECT * FROM task WHERE name = ?',
-                [name]
+                (name,)
             ).fetchone()
 
     @_convert_decorator(UserTask)
-    def get_user_task(self, task_id):
+    def get_user_task(self, user, task):
         with self._create_connection() as db:
-            return db.execute(
-                'SELECT * FROM user_task WHERE rowid = ?',
-                [task_id]
+            return db.execute('''
+                SELECT * FROM user_task
+                WHERE user = ? AND task = ?
+                ''',
+                (user, task)
             ).fetchone()
 
     @_convert_decorator(Review)
-    def get_review(self, reviewer, task_id):
+    def get_review(self, reviewer, reviewee, task):
         with self._create_connection() as db:
-            return db.execute(
-                'SELECT * FROM user_task WHERE reviewer = ? AND task_id = ?',
-                [reviewer, task_id]
+            return db.execute('''
+                SELECT * FROM review
+                WHERE reviewer = ? AND reviewee = ? AND task = ?
+                ''',
+                (reviewer, reviewee, task)
             ).fetchone()
 
-    @_convert_many_decorator(User)
+    @_convert_list_decorator(User)
     def get_all_users(self):
         with self._create_connection() as db:
             return db.execute('SELECT * FROM user').fetchall()
 
-    @_convert_many_decorator(Task)
+    @_convert_list_decorator(Task)
     def get_all_tasks(self):
         with self._create_connection() as db:
             return db.execute('SELECT * FROM task').fetchall()
 
-    @_convert_many_decorator(UserTask)
+    @_convert_list_decorator(UserTask)
     def get_all_user_tasks(self):
         with self._create_connection() as db:
             return db.execute('SELECT * FROM user_task').fetchall()
 
-    @_convert_many_decorator(Review)
-    def get_all_reviewes(self):
+    @_convert_list_decorator(Review)
+    def get_all_reviews(self):
         with self._create_connection() as db:
             return db.execute('SELECT * FROM review').fetchall()
 
@@ -107,10 +112,8 @@ class PeerReviewDB:
 
     def add_user_task(self, user_task):
         with self._create_connection() as db:
-            db.execute('''
-                INSERT INTO user_task (user, task, url, status, timestamp)
-                VALUES (?, ?, ?, ?, ?)
-                ''',
+            db.execute(
+                'INSERT INTO user_task VALUES (?, ?, ?, ?, ?)',
                 (
                     user_task.user,
                     user_task.task,
@@ -123,10 +126,11 @@ class PeerReviewDB:
     def add_review(self, review):
         with self._create_connection() as db:
             db.execute(
-                'INSERT INTO review VALUES (?, ?, ?)',
+                'INSERT INTO review VALUES (?, ?, ?, ?)',
                 (
                     review.reviewer,
-                    review.task_id,
+                    review.reviewee,
+                    review.task,
                     review.status
                 )
             )
@@ -137,19 +141,24 @@ class PeerReviewDB:
 
     def remove_task(self, name):
         with self._create_connection() as db:
-            db.execute('DELETE FROM user WHERE name = ?', (name,))
+            db.execute('DELETE FROM task WHERE name = ?', (name,))
 
-    def remove_user_task(self, task_id):
-        with self._create_connection() as db:
-            db.execute('DELETE FROM user WHERE id = ?', (task_id,))
-
-    def remove_review(self, reviewer, task_ib):
+    def remove_user_task(self, user, task):
         with self._create_connection() as db:
             db.execute('''
-                DELETE FROM user
-                WHERE reviewer = ? AND task_id = ?
+                DELETE FROM user_task
+                WHERE user = ? AND task = ?
+                ''',
+                (user, task)
+            )
+
+    def remove_review(self, reviewer, reviewee, task):
+        with self._create_connection() as db:
+            db.execute('''
+                DELETE FROM review
+                WHERE reviewer = ? AND reviewee = ? AND task = ?
                 ''', 
-                (reviewer, task_id)
+                (reviewer, reviewee, task)
             )
 
     def _create_db(self):
@@ -164,20 +173,21 @@ class PeerReviewDB:
             )''')
             db.execute('''
             CREATE TABLE user_task (
-                id          int     PRIMARY KEY
                 user        text    REFERENCES user(login),
                 task        text    REFERENCES task(name),
                 url         text,
                 status      int,
                 timestamp   int,
-                UNIQUE(user, task)
+                PRIMARY KEY (user, task)
             )''')
             db.execute('''
             CREATE TABLE review (
                 reviewer text    REFERENCES user(login),
-                task_id  int     REFERENCES user_task(id),
+                reviewee text,
+                task     text,
                 status   int,
-                PRIMARY KEY(reviewer, task_id)
+                PRIMARY KEY (reviewer, reviewee, task)
+                FOREIGN KEY (reviewee, task) REFERENCES user_task(user, task)
             )''')
 
     def _create_connection(self):
