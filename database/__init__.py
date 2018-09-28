@@ -1,3 +1,3 @@
 from database import PeerReviewDB
-from datatypes import TaskStatus, ReviewStatus
-from datatypes import User, Task, UserTask, Review
+from schema import TaskStatus, ReviewStatus
+from schema import User, Task, UserTask, Review

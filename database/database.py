@@ -5,8 +5,8 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from datatypes import TaskStatus, ReviewStatus
-from datatypes import User, Task, UserTask, Review
+from schema import TaskStatus, ReviewStatus
+from schema import User, Task, UserTask, Review
 
 
 class PeerReviewDB:
