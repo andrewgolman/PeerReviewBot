@@ -1,7 +1,7 @@
 import enum
 
 from sqlalchemy import Column
-from sqlalchemy import Enum, Integer, String, Time
+from sqlalchemy import BigInteger, Enum, Integer, String
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -48,7 +48,7 @@ class UserTask(Base):
     task_id     = Column(Integer, ForeignKey('task.id'), nullable=False)
     url         = Column(String(200), nullable=False)
     status      = Column(Enum(TaskStatus), default=TaskStatus.WAITING_REVIEW, nullable=False)
-    timestamp   = Column(Time, nullable=False)
+    timestamp   = Column(BigInteger, nullable=False)
 
     UniqueConstraint(user_id, task_id)
 
@@ -66,7 +66,7 @@ class Review(Base):
     id                  = Column(Integer, primary_key=True)
     reviewer_id         = Column(Integer, ForeignKey('user.id'), nullable=False)
     reviewed_task_id    = Column(Integer, ForeignKey('user_tasks.id'), nullable=False)
-    status              = Column(Time, nullable=False)
+    status              = Column(Enum(ReviewStatus), nullable=False)
     issue_url           = Column(String(200))
 
     UniqueConstraint(issue_url)

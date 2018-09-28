@@ -6,18 +6,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from schema import TaskStatus, ReviewStatus
-from schema import User, Task, UserTask, Review
+from schema import Base, User, Task, UserTask, Review
 
 
 class PeerReviewDB:
-    def __init__(self, db_url, override_db=False):
-        self._engine = create_engine(db_url, echo=True)
-        self._session_factory = sessionmaker(bind=engine)
+    def __init__(self, db_url, echo=False):
+        self._engine = create_engine(db_url, echo=echo)
+        Base.metadata.create_all(self._engine)
+        self._session_factory = sessionmaker(bind=self._engine)
 
     @contextmanager
     def start_session(self):
         self._session = self._session_factory()
-        yield None
+        yield self
+        self._session.commit()
         self._session.close()
 
     def get_user(self, login):
@@ -39,7 +41,7 @@ class PeerReviewDB:
             Review.status       != ReviewStatus.CLOSED,
         ).first()
 
-    def get_all_records(record_type):
+    def get_all_records(self, record_type):
         return self._session.query(record_type).all()
 
     def add_record(self, record):
