@@ -11,14 +11,7 @@ from schema import User, Task, UserTask, Review
 class TestPeerReviewDB(ut.TestCase):
 
     def setUp(self):
-        self._db_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'test.db'
-        )
-        if os.path.exists(self._db_path):
-            print('Removing existing database at', self._db_path)
-            os.remove(self._db_path)
-        self._db = PeerReviewDB('sqlite:///' + self._db_path, echo=False)
+        self._db = PeerReviewDB('sqlite:///:memory:')
 
         # define test records
         self._test_users = [
@@ -69,23 +62,10 @@ class TestPeerReviewDB(ut.TestCase):
             ),
         ]
 
-        # prepopulate database
-        with self._db.start_session() as db:
-            for user in self._test_users:
-                db.add_record(user)
-            for task in self._test_tasks:
-                db.add_record(task)
-            for user_task in self._test_user_tasks:
-                db.add_record(user_task)
-            for review in self._test_reviews:
-                db.add_record(review)
-
-    def tearDown(self):
-        os.remove(self._db_path)
-
     def test_populate(self):
         with self._db.start_session() as db:
-            return
+            self._prepopulate_db(db)
+
             self.assertSetEqual(
                 set(db.get_all_records(User)),
                 set(self._test_users)
@@ -102,6 +82,16 @@ class TestPeerReviewDB(ut.TestCase):
                 set(db.get_all_records(Review)),
                 set(self._test_reviews)
             )
+
+    def _prepopulate_db(self, db):
+        for user in self._test_users:
+            db.add_record(user)
+        for task in self._test_tasks:
+            db.add_record(task)
+        for user_task in self._test_user_tasks:
+            db.add_record(user_task)
+        for review in self._test_reviews:
+            db.add_record(review)
 
 
 if __name__ == '__main__':
