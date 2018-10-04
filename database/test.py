@@ -17,7 +17,7 @@ class TestPeerReviewDB(ut.TestCase):
         )
         if os.path.exists(self._db_path):
             os.remove(self._db_path)
-        self._db = PeerReviewDB('sqlite:///' + self._db_path, echo=True)
+        self._db = PeerReviewDB('sqlite:///' + self._db_path, echo=False)
 
         # define test records
         self._test_users = [
