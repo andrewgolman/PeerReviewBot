@@ -21,20 +21,47 @@ class ReviewStatus(enum.Enum):
 
 Base = declarative_base()
 
+def _base_get_columns_dict(self):
+    columns_dict = {}
+    for column in self.__table__.columns:
+        columns_dict[column.name] = getattr(self, column.name)
+    return columns_dict
+
+def _base_get_columns_frozenset(self):
+    return frozenset(self._get_columns_dict().items())
+
+def _base_repr(self):
+    columns = []
+    for column, value in sorted(self._get_columns_dict().items()):
+        columns.append('{}={}'.format(column, value))
+    return '<{}: {}>'.format(self.__class__.__name__, ', '.join(columns))
+
+def _base_hash(self):
+    return hash(self._get_columns_frozenset())
+
+def _base_eq(self, other):
+    return self._get_columns_frozenset() == other._get_columns_frozenset()
+
+Base._get_columns_dict = _base_get_columns_dict
+Base._get_columns_frozenset = _base_get_columns_frozenset
+Base.__repr__ = _base_repr
+Base.__hash__ = _base_hash
+Base.__eq__ = _base_eq
+
 
 class User(Base):
     __tablename__ = 'user'
 
     id      = Column(Integer, primary_key=True)
     login   = Column(String(40))
-    
     UniqueConstraint(login)
+
 
 
 class Task(Base):
     __tablename__ = 'task'
 
-    id      = Column(Integer, primary_key=True)
+    id      = Column(Integer, primary_key=True, autoincrement=True)
     name    = Column(String(100), nullable=False)
 
     UniqueConstraint(name)
@@ -43,7 +70,7 @@ class Task(Base):
 class UserTask(Base):
     __tablename__ = 'user_tasks'
 
-    id          = Column(Integer, primary_key=True)
+    id          = Column(Integer, primary_key=True, autoincrement=True)
     user_id     = Column(Integer, ForeignKey('user.id'), nullable=False)
     task_id     = Column(Integer, ForeignKey('task.id'), nullable=False)
     url         = Column(String(200), nullable=False)
@@ -63,7 +90,7 @@ Task.attempts = relationship(UserTask, order_by=UserTask.id, back_populates='tas
 class Review(Base):
     __tablename__ = 'review'
 
-    id                  = Column(Integer, primary_key=True)
+    id                  = Column(Integer, primary_key=True, autoincrement=True)
     reviewer_id         = Column(Integer, ForeignKey('user.id'), nullable=False)
     reviewed_task_id    = Column(Integer, ForeignKey('user_tasks.id'), nullable=False)
     status              = Column(Enum(ReviewStatus), nullable=False)
